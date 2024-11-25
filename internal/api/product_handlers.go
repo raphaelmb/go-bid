@@ -43,3 +43,15 @@ func (api *Api) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
 		"id":      id,
 	})
 }
+
+func (api *Api) HandleGetAllProducts(w http.ResponseWriter, r *http.Request) {
+	data, err := api.ProductService.GetAllProducts(r.Context())
+	if err != nil {
+		jsonutils.EncodeJSON(w, r, http.StatusInternalServerError, map[string]any{
+			"error": "something went wrong",
+		})
+		return
+	}
+
+	jsonutils.EncodeJSON(w, r, http.StatusOK, data)
+}

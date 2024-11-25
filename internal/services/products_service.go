@@ -41,3 +41,35 @@ func (ps *ProductService) CreateProduct(
 
 	return id, nil
 }
+
+type Product struct {
+	SellerID    uuid.UUID `json:"seller_id"`
+	ProductName string    `json:"product_name"`
+	Description string    `json:"description"`
+	Baseprice   float64   `json:"baseprice"`
+	AuctionEnd  time.Time `json:"auction_end"`
+}
+
+func (ps *ProductService) GetAllProducts(ctx context.Context) ([]Product, error) {
+	products, err := ps.queries.GetAllProducts(ctx)
+	if err != nil {
+		return []Product{}, err
+	}
+
+	return productsOutput(products), nil
+}
+
+func productsOutput(products []pgstore.Product) []Product {
+	var result []Product
+	for _, val := range products {
+		product := Product{
+			SellerID:    val.SellerID,
+			ProductName: val.ProductName,
+			Description: val.Description,
+			Baseprice:   val.Baseprice,
+			AuctionEnd:  val.AuctionEnd,
+		}
+		result = append(result, product)
+	}
+	return result
+}

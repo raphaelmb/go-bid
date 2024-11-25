@@ -6,3 +6,6 @@ RETURNING id;
 -- name: GetProductById :one
 SELECT * FROM products
 WHERE id = $1;
+
+-- name: GetAllProducts :many
+SELECT * FROM products;
