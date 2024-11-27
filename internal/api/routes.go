@@ -28,6 +28,8 @@ func (api *Api) BindRoutes() {
 				r.Group(func(r chi.Router) {
 					r.Use(api.AuthMiddleware)
 					r.Post("/", api.HandleCreateProduct)
+
+					r.Get("/ws/subscribe/{product_id}", api.HandleSubscribeUserToAuction)
 				})
 			})
 		})

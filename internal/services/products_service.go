@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/raphaelmb/go-bid/internal/store/pgstore"
 )
@@ -42,34 +44,25 @@ func (ps *ProductService) CreateProduct(
 	return id, nil
 }
 
-type Product struct {
-	SellerID    uuid.UUID `json:"seller_id"`
-	ProductName string    `json:"product_name"`
-	Description string    `json:"description"`
-	Baseprice   float64   `json:"baseprice"`
-	AuctionEnd  time.Time `json:"auction_end"`
-}
-
-func (ps *ProductService) GetAllProducts(ctx context.Context) ([]Product, error) {
+func (ps *ProductService) GetAllProducts(ctx context.Context) ([]pgstore.Product, error) {
 	products, err := ps.queries.GetAllProducts(ctx)
 	if err != nil {
-		return []Product{}, err
+		return []pgstore.Product{}, err
 	}
 
-	return productsOutput(products), nil
+	return products, nil
 }
 
-func productsOutput(products []pgstore.Product) []Product {
-	var result []Product
-	for _, val := range products {
-		product := Product{
-			SellerID:    val.SellerID,
-			ProductName: val.ProductName,
-			Description: val.Description,
-			Baseprice:   val.Baseprice,
-			AuctionEnd:  val.AuctionEnd,
+var ErrProductNotFound = errors.New("product not found")
+
+func (ps *ProductService) GetProductById(ctx context.Context, id uuid.UUID) (pgstore.Product, error) {
+	product, err := ps.queries.GetProductById(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return pgstore.Product{}, ErrProductNotFound
 		}
-		result = append(result, product)
+		return pgstore.Product{}, err
 	}
-	return result
+
+	return product, nil
 }
